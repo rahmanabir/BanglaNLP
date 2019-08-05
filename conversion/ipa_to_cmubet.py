@@ -2,8 +2,8 @@ import re
 
 # cmubet to ipa look up table import
 from dataTables import CMUBET
-# import CMUBET  # fix folder structure
 
+# import CMUBET
 # CMUBET symbol set
 m_CMUBET = CMUBET.data
 
@@ -44,31 +44,21 @@ i2c_lookup = {
 for CMUBET_symbol, IPA_symbol in m_CMUBET.items():
     i2c_lookup[IPA_symbol] = CMUBET_symbol
 
-# needs to read from file
-#textIPA = "pi.roɟ.pur ɟe.lar ka.u.kʰa.li bɔn.d̪ɔ.re ek.ti mat̪.t̪ro ba.li.ka bid̪.d̪a.lɔj a.cʰe ɟa es.bi ʃɔr.ka.ri uc.co.ba.li.ka bid̪.d̪a.lɔj na.me po.ri.ci.t̪o"
-
-# textIPA = ' '.join(w.replace('ɟ', 'ʤ')
-#                   for w in textIPA.split())
-
-# debug print
-# print(textIPA)
-
-# textIPA = ' '.join(w.replace('.', '')
-#                   for w in textIPA.split())
-
-# Debug print
-# print(textIPA)
+# convert IPA to CMUBET [contains . and ɟ replacement]
 
 
-def IPA_to_CMUBET(text):
+def IPA_Repair(text):
 
-    # text = re.sub(r".", "", text)
     text = ' '.join(w.replace('ɟ', 'ʤ')
                     for w in text.split())
 
     text = ' '.join(w.replace('.', '')
                     for w in text.split())
 
+    return text
+
+
+def IPA_to_CMUBET(text):
     text = re.sub("ːː", ":", text)
     text = text.lstrip("/[").rstrip("]/")
     text = text.strip("'-!$")
@@ -83,7 +73,3 @@ def IPA_to_CMUBET(text):
             CMUBET_lst.append(i2c_lookup[text[i]])
         i += 1
     return " ".join(CMUBET_lst)
-
-
-# debug print
-# print(IPA_to_CMUBET(textIPA))
