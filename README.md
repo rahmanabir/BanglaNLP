@@ -1,1 +1,2 @@
-# BanglaNLP
+## Bangla Phoneme Detection from Speech Audio using Other Language Models
+The goal is to feed an audio file to a Sphinx Speech Model that has been setup with an English/Hindi language and acoustic model and produce CMUBET phonemes, and analyze the different outputs. A dataset of ~12000 bangla spoken sentences with phonetic annotations will be used for training and testing, collected from the 'Development of Annotated Bangla Speech Corpora' paper. 
