@@ -1,4 +1,8 @@
-data/
+wavs/
+wav/
+@Datasets/
+@Literature/
+@Models/
 
 # Compiled source #
 ###################
