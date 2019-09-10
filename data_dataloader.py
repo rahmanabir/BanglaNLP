@@ -54,17 +54,16 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
             text = text.strip("'-!$[]")
             text = text.split(',')
             i=0
-            for t in range(0,44):
-                if t=='Tokens':
-                    pass
-                else:
-                    try:
-                        ctext.append(int(text[t]))
+            for t in range(0,43):
+                try:
+                    num = int(text[t])
+                    if num!=0:
                         i+=1
-                    except:
-                        ctext.append(0)
+                        ctext.append(num)
+                except:
+                    ctext.append(0)
             labels.append(ctext)
-            lens.append(i-1)
+            lens.append(i)
             fnames.append(row[0])
 
     labels.pop(0)
@@ -95,6 +94,7 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
     np.save('kothaddekha_ImageArray_'+name+'.npy',imgarr)
     np.save('kothaddekha_LabelArray_'+name+'.npy',labels)
     np.save('kothaddekha_LenthArray_'+name+'.npy',lens)
+
 
 
 def saveimagesasnpy_modular(path='data/spectographs/', name='MOD', length=200, shuffle=False):
@@ -230,50 +230,7 @@ class KD_DL_Raw(D.Dataset):
         """ Total number of samples in the dataset """
         return self.len
 
-
-# class KD_DL_RawTensor(D.Dataset):
-
-#     def __init__(self, root):
-#         """ Intialize the dataset """
-#         self.filearray = []
-#         self.imgarray = []
-#         self.labels = []
-#         self.root = root
-#         self.tens = transforms.ToTensor()
-#         filenames = glob.glob(osp.join(self.root+'Pixelart/', '*.jpg'))
-#         for fn in filenames:
-#             self.filearray.append(fn)
-#             self.labels.append(1)
-#         filenames = glob.glob(osp.join(self.root+'Realpix/', '*.jpg'))
-#         for fn in filenames:
-#             self.filearray.append(fn)
-#             self.labels.append(0)
-#         self.len = len(self.filearray)
-
-#         for index in range(0,self.len):
-#             image = Image.open(self.filearray[index])
-#             if image.size[0] != image.size[1]:
-#                 sqrsize = min(image.size)
-#                 croptrans = transforms.CenterCrop((sqrsize,sqrsize))
-#                 image = croptrans(image)
-#             nimage = image.resize((128, 128), Image.NEAREST)
-#             nimage = nimage.convert('RGB')
-#             self.imgarray.append(self.tens(nimage))
-
-#     def __getitem__(self, index):
-#         """ Get a sample from the dataset """
-#         image = Image.open(self.filearray[index])
-#         if image.size[0] != image.size[1]:
-#             sqrsize = min(image.size)
-#             croptrans = transforms.CenterCrop((sqrsize,sqrsize))
-#             image = croptrans(image)
-#         nimage = image.resize((128, 128), Image.NEAREST)
-#         nimage = nimage.convert('RGB')
-#         label = self.labels[index]
-#         return self.tens(nimage), label
-
 ####################################################################
-
 
 ####################################################################
 
