@@ -3,6 +3,7 @@ wav/
 @Datasets/
 @Literature/
 @Models/
+data/
 
 # Compiled source #
 ###################
