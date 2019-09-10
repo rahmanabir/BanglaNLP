@@ -217,8 +217,6 @@ def convertTokens2Dekhabet(input):
 # MakeMatchingCSV()
 # FindMaxMinCSVToken()
 # splitcsv()
-<<<<<<< HEAD
-=======
 
 
 def convertTokens2Dekhabet(input):
@@ -226,4 +224,3 @@ def convertTokens2Dekhabet(input):
     for i in input:
         out += tokenlookup[int(i)]
     return out
->>>>>>> 7d69de797ef4d8f34c953638b08642d16bb084d5
