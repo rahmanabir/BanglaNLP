@@ -4,6 +4,7 @@ wav/
 @Literature/
 @Models/
 data/
+outputModel/
 
 *.jpg
 *.npy
