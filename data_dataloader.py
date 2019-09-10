@@ -7,6 +7,7 @@ import torch
 import torchvision
 from torchvision import transforms
 from torch.utils import data as D
+import csv
 
 import os
 import glob
@@ -39,34 +40,66 @@ def torchdatagrid(images):
 
 # ------------------------------------------------------------------
 
-def saveimagesasnpy(dir='images/'):
-    filearray = []
+def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.csv', name='2k2sec'):
+    # filearray = []
+    # filenames = glob.glob(osp.join(dir, '*.jpg'))
     labels = []
-    filenames = glob.glob(osp.join(dir, '*.png'))
-    for fn in filenames:
-        filearray.append(fn)
-        labels.append(1)
+    fnames = []
+    lens = []
+    with open(csvf, 'r') as csvFile:
+        reader = csv.reader(csvFile)
+        for row in reader:
+            ctext = []
+            text = row[4]
+            text = text.strip("'-!$[]")
+            text = text.split(',')
+            i=0
+            for t in range(0,44):
+                if t=='Tokens':
+                    pass
+                else:
+                    try:
+                        ctext.append(int(text[t]))
+                        i+=1
+                    except:
+                        ctext.append(0)
+            labels.append(ctext)
+            lens.append(i-1)
+            fnames.append(row[0])
 
-    length = len(filearray)
+    labels.pop(0)
+    lens.pop(0)
+    fnames.pop(0)
+    print('lfn:',len(fnames))
+    print('lbl:',len(labels))
+    print('lln:',len(lens))
+    # for fn in filenames:
+    #     filearray.append(fn)
+
+    length = len(fnames)
     imgarr = []
     for index in range(0,length):
-        image = Image.open(filearray[index])
-        # if image.size[0] != image.size[1]:
-        #     sqrsize = min(image.size)
-        #     croptrans = transforms.CenterCrop((sqrsize,sqrsize))
-        #     image = croptrans(image)
-        nimage = image.resize((320, 200), Image.NEAREST)
+        image = Image.open(dir+fnames[index]+'.wav.jpg')
+        nimage = image.resize((256, 128), Image.NEAREST)
         nimage = nimage.convert('RGB')
         img = np.array(nimage)
         imgarr.append(img)
+        if index%100==0:
+            print(index,'imgs added to array')
     imgarr = np.array(imgarr)
-    # imgarr = np.moveaxis(imgarr,3,1)
-    np.save('kothaddekha_ImageArray_'+len(imgarr),imgarr)
+
+    csvFile.close()
+    print(fnames[0],lens[0],labels[0])
+    print(fnames[1],lens[1],labels[1])
+    print(fnames[55],lens[55],labels[55])
+    np.save('kothaddekha_ImageArray_'+name+'.npy',imgarr)
+    np.save('kothaddekha_LabelArray_'+name+'.npy',labels)
+    np.save('kothaddekha_LenthArray_'+name+'.npy',lens)
 
 
-def saveimagesasnpy_modular(path='images/', name='MOD', length=200, shuffle=False):
+def saveimagesasnpy_modular(path='data/spectographs/', name='MOD', length=200, shuffle=False):
     filearray = []
-    filenames = glob.glob(osp.join(path, '*.png'))
+    filenames = glob.glob(osp.join(path, '*.jpg'))
     count = length
     for fn in filenames:
         if count > 0:
@@ -80,7 +113,7 @@ def saveimagesasnpy_modular(path='images/', name='MOD', length=200, shuffle=Fals
         #     sqrsize = min(image.size)
         #     croptrans = transforms.CenterCrop((sqrsize,sqrsize))
         #     image = croptrans(image)
-        nimage = image.resize((320, 200), Image.NEAREST)
+        nimage = image.resize((128, 96), Image.NEAREST)
         nimage = nimage.convert('RGB')
         img = np.array(nimage)
         imgarr.append(img)
@@ -91,11 +124,12 @@ def saveimagesasnpy_modular(path='images/', name='MOD', length=200, shuffle=Fals
 
 def loadnpyfiles(npyname):
     npzimg = np.load('kothaddekha_ImageArray_'+npyname+'.npy')
-    npzlbl = np.load('kothaddekha_LabelArray_'+npyname+'.npy')
-    return npzimg, npzlbl
+    npzlbl = np.load('kothaddekha_LabelArray_'+npyname+'.npy',allow_pickle=True)
+    npzlen = np.load('kothaddekha_LenthArray_'+npyname+'.npy')
+    return npzimg, npzlbl, npzlen
 
 
-def convertimagestotensor(dirname='images/'):
+def convertimagestotensor(dirname='data/spectographs/'):
     filearray = []
     filenames = glob.glob(osp.join(dirname, '*.png'))
     for fn in filenames:
@@ -107,7 +141,7 @@ def convertimagestotensor(dirname='images/'):
         #     sqrsize = min(image.size)
         #     croptrans = transforms.CenterCrop((sqrsize,sqrsize))
         #     image = croptrans(image)
-        nimage = image.resize((320, 200), Image.NEAREST)
+        nimage = image.resize((128, 96), Image.NEAREST)
         nimage = nimage.convert('RGB')
         t = transforms.ToTensor()
         img = t(nimage)
@@ -121,8 +155,7 @@ class KD_DL(D.Dataset):
     def __init__(self, root):
         """ Intialize the dataset """
         self.root = root
-        self.imgarray = np.load('kothaddekha_ImageArray_'+root+'.npy')
-        self.labels = np.load('picsle8_LabelArray_'+root+'.npy')
+        self.imgarray, self.labels, self.lens = loadnpyfiles(root)
         self.len = len(self.labels)
 
     def __getitem__(self, index):
@@ -142,7 +175,7 @@ class KD_DL_Tensor(D.Dataset):
     def __init__(self, root):
         """ Intialize the dataset """
         self.root = root
-        self.labels = np.load('picsle8_LabelArray_'+root+'.npy')
+        self.labels = np.load('kothaddekha_LabelArray_'+root+'.npy')
         nparray = np.load('kothaddekha_ImageArray_'+root+'.npy')
         self.imgarray = []
         t = transforms.ToTensor()
@@ -170,10 +203,15 @@ class KD_DL_Raw(D.Dataset):
         self.labels = []
         self.root = root
         self.transform = transforms.ToTensor()
-        filenames = glob.glob(osp.join(self.root, '*.png'))
+        filenames = glob.glob(osp.join(self.root, '*.jpg'))
         for fn in filenames:
             self.filearray.append(fn)
-            self.labels.append(1)        
+            self.labels.append(1)
+        with open(csvf, 'r') as csvFile:
+            reader = csv.reader(csvFile)
+            for row in reader:
+                self.labels.append(row[4])
+        csvFile.close()
         self.len = len(self.filearray)
 
     def __getitem__(self, index):
@@ -183,7 +221,7 @@ class KD_DL_Raw(D.Dataset):
         #     sqrsize = min(image.size)
         #     croptrans = transforms.CenterCrop((sqrsize,sqrsize))
         #     image = croptrans(image)
-        nimage = image.resize((320,200), Image.NEAREST)
+        nimage = image.resize((256, 128), Image.NEAREST)
         nimage = nimage.convert('RGB')
         label = self.labels[index]
         return self.transform(nimage), label
@@ -240,7 +278,6 @@ class KD_DL_Raw(D.Dataset):
 ####################################################################
 
 def get_loaders(path,split_perc=0.7,batch_size=32,mode=0):
-
     # Simple dataset. Only save path to image and load it and transform to tensor when call getitem.
     if mode==0:
         dataset = KD_DL(path)           # Numpy File
@@ -253,36 +290,36 @@ def get_loaders(path,split_perc=0.7,batch_size=32,mode=0):
 
     # total images in set
     print(dataset.len,'images from the dataset')
-    
+
     # divide dataset into training and validation subsets
     train_len = int(split_perc*dataset.len)
     valid_len = dataset.len - train_len
     train, valid = D.random_split(dataset, lengths=[train_len, valid_len])
     print(len(train), len(valid))
-    
+
     # Use the torch dataloader to iterate through the dataset
     trainloader = D.DataLoader(train, batch_size=batch_size, shuffle=False, num_workers=0)
     validloader = D.DataLoader(valid, batch_size=batch_size, shuffle=False, num_workers=0)
     return trainloader, validloader
 
 def main_func():
-    path = 'images/'
+    path = '2k2sec'
     # Simple dataset. Only save path to image and load it and transform to tensor when call __getitem__.
-    dataset = KD_DL(path)
+    dlt, dlv = get_loaders(path, mode=0)
     # total images in set
-    print(dataset.len,'images from the dataset')
+    # print(dataset.len,'images from the dataset')
     # divide dataset into training and validation subsets
-    train_len = int(0.7*dataset.len)
-    valid_len = dataset.len - train_len
-    train, valid = D.random_split(dataset, lengths=[train_len, valid_len])
-    len(train), len(valid)
-    # Use the torch dataloader to iterate through the dataset
-    trainloader = D.DataLoader(train, batch_size=32, shuffle=False, num_workers=0)
-    validloader = D.DataLoader(valid, batch_size=32, shuffle=False, num_workers=0)
+    # train_len = int(0.7*dataset.len)
+    # valid_len = dataset.len - train_len
+    # train, valid = D.random_split(dataset, lengths=[train_len, valid_len])
+    # # len(train), len(valid)
+    # # Use the torch dataloader to iterate through the dataset
+    # trainloader = D.DataLoader(train, batch_size=32, shuffle=False, num_workers=0)
+    # validloader = D.DataLoader(valid, batch_size=32, shuffle=False, num_workers=0)
 
     # get some images
-    dataiter_tr = iter(trainloader)
-    dataiter_vl = iter(validloader)
+    dataiter_tr = iter(dlt)
+    dataiter_vl = iter(dlv)
     images_t, labels_t = dataiter_tr.next()
     images_v, labels_v = dataiter_vl.next()
 
@@ -290,10 +327,17 @@ def main_func():
     plt.figure(figsize=(16,8))
     torchimshow(torchvision.utils.make_grid(images_t))
     print('Train:',labels_t)
-    plt.figure(figsize=(16,8))
-    torchimshow(torchvision.utils.make_grid(images_v))
-    print('Valid:',labels_v)
+    print(images_v[0].shape)
+    # plt.figure(figsize=(16,8))
+    # torchimshow(torchvision.utils.make_grid(images_v))
+    # print('Valid:',labels_v)
 
 # tl, vl = get_loaders('Pixel_750', mode=1);    #mode 0/1 numpy+tensor
 # tl, vl = get_loaders('images/', mode=3);      #mode 2/3 raw+rawtensor
 # print(tl)
+# print(os.getcwd())
+
+# saveimagesasnpy()
+# npim, nplb, npln = loadnpyfiles('2k2sec')
+# print(npim.shape, nplb.shape, npln.shape)
+# main_func()

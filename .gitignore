@@ -5,6 +5,10 @@ wav/
 @Models/
 data/
 
+*.jpg
+*.npy
+
+
 # Compiled source #
 ###################
 *.com
