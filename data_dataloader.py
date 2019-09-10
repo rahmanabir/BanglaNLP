@@ -163,7 +163,8 @@ class KD_DL(D.Dataset):
         t = transforms.ToTensor()
         image = t(self.imgarray[index])
         label = self.labels[index]
-        return image, label
+        lengths = self.lens[index]
+        return image, label, lengths
 
     def __len__(self):
         """ Total number of samples in the dataset """
@@ -320,8 +321,8 @@ def main_func():
     # get some images
     dataiter_tr = iter(dlt)
     dataiter_vl = iter(dlv)
-    images_t, labels_t = dataiter_tr.next()
-    images_v, labels_v = dataiter_vl.next()
+    images_t, labels_t, lens = dataiter_tr.next()
+    images_v, labels_v, lens = dataiter_vl.next()
 
     # show images and match labels 4 fun
     plt.figure(figsize=(16,8))
