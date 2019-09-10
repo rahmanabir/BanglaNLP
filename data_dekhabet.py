@@ -211,4 +211,11 @@ def splitcsv(csvf='dekhabet_dataLabelsRanged.csv'):
 # ConvertIPA2Dekhabet()
 # MakeMatchingCSV()
 # FindMaxMinCSVToken()
-splitcsv()
+# splitcsv()
+
+
+def convertTokens2Dekhabet(input):
+    out = ''
+    for i in input:
+        out += tokenlookup[int(i)]
+    return out
