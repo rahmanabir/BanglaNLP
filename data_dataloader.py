@@ -39,34 +39,47 @@ def torchdatagrid(images):
 
 # ------------------------------------------------------------------
 
-def saveimagesasnpy(dir='images/'):
+def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.csv'):
     filearray = []
     labels = []
-    filenames = glob.glob(osp.join(dir, '*.png'))
+    filenames = glob.glob(osp.join(dir, '*.jpg'))
+
     for fn in filenames:
         filearray.append(fn)
         labels.append(1)
-
     length = len(filearray)
     imgarr = []
     for index in range(0,length):
         image = Image.open(filearray[index])
-        # if image.size[0] != image.size[1]:
-        #     sqrsize = min(image.size)
-        #     croptrans = transforms.CenterCrop((sqrsize,sqrsize))
-        #     image = croptrans(image)
-        nimage = image.resize((320, 200), Image.NEAREST)
+        nimage = image.resize((256, 128), Image.NEAREST)
         nimage = nimage.convert('RGB')
         img = np.array(nimage)
         imgarr.append(img)
     imgarr = np.array(imgarr)
-    # imgarr = np.moveaxis(imgarr,3,1)
+
+    labels = []
+    with open(csvf, 'r') as csvFile:
+        reader = csv.reader(csvFile)
+        for row in reader:
+            ctext = []
+            text = row[4]
+            text = text.strip("'-!$[]")
+            text = text.split(',')
+            for t in text:
+                if t=='Tokens':
+                    pass
+                else:
+                    ctext.append(int(t))
+            labels.append(ctext)
+    csvFile.close()
+
     np.save('kothaddekha_ImageArray_'+len(imgarr),imgarr)
+    np.save('kothaddekha_LabelArray_'+len(imgarr),labels)
 
 
-def saveimagesasnpy_modular(path='images/', name='MOD', length=200, shuffle=False):
+def saveimagesasnpy_modular(path='data/spectographs/', name='MOD', length=200, shuffle=False):
     filearray = []
-    filenames = glob.glob(osp.join(path, '*.png'))
+    filenames = glob.glob(osp.join(path, '*.jpg'))
     count = length
     for fn in filenames:
         if count > 0:
@@ -80,7 +93,7 @@ def saveimagesasnpy_modular(path='images/', name='MOD', length=200, shuffle=Fals
         #     sqrsize = min(image.size)
         #     croptrans = transforms.CenterCrop((sqrsize,sqrsize))
         #     image = croptrans(image)
-        nimage = image.resize((320, 200), Image.NEAREST)
+        nimage = image.resize((128, 96), Image.NEAREST)
         nimage = nimage.convert('RGB')
         img = np.array(nimage)
         imgarr.append(img)
@@ -95,7 +108,7 @@ def loadnpyfiles(npyname):
     return npzimg, npzlbl
 
 
-def convertimagestotensor(dirname='images/'):
+def convertimagestotensor(dirname='data/spectographs/'):
     filearray = []
     filenames = glob.glob(osp.join(dirname, '*.png'))
     for fn in filenames:
@@ -107,7 +120,7 @@ def convertimagestotensor(dirname='images/'):
         #     sqrsize = min(image.size)
         #     croptrans = transforms.CenterCrop((sqrsize,sqrsize))
         #     image = croptrans(image)
-        nimage = image.resize((320, 200), Image.NEAREST)
+        nimage = image.resize((128, 96), Image.NEAREST)
         nimage = nimage.convert('RGB')
         t = transforms.ToTensor()
         img = t(nimage)
@@ -122,7 +135,7 @@ class KD_DL(D.Dataset):
         """ Intialize the dataset """
         self.root = root
         self.imgarray = np.load('kothaddekha_ImageArray_'+root+'.npy')
-        self.labels = np.load('picsle8_LabelArray_'+root+'.npy')
+        self.labels = np.load('kothaddekha_LabelArray_'+root+'.npy')
         self.len = len(self.labels)
 
     def __getitem__(self, index):
@@ -142,7 +155,7 @@ class KD_DL_Tensor(D.Dataset):
     def __init__(self, root):
         """ Intialize the dataset """
         self.root = root
-        self.labels = np.load('picsle8_LabelArray_'+root+'.npy')
+        self.labels = np.load('kothaddekha_LabelArray_'+root+'.npy')
         nparray = np.load('kothaddekha_ImageArray_'+root+'.npy')
         self.imgarray = []
         t = transforms.ToTensor()
@@ -170,10 +183,15 @@ class KD_DL_Raw(D.Dataset):
         self.labels = []
         self.root = root
         self.transform = transforms.ToTensor()
-        filenames = glob.glob(osp.join(self.root, '*.png'))
+        filenames = glob.glob(osp.join(self.root, '*.jpg'))
         for fn in filenames:
             self.filearray.append(fn)
-            self.labels.append(1)        
+            self.labels.append(1)
+        with open(csvf, 'r') as csvFile:
+            reader = csv.reader(csvFile)
+            for row in reader:
+                self.labels.append(row[4])
+        csvFile.close()
         self.len = len(self.filearray)
 
     def __getitem__(self, index):
@@ -183,7 +201,7 @@ class KD_DL_Raw(D.Dataset):
         #     sqrsize = min(image.size)
         #     croptrans = transforms.CenterCrop((sqrsize,sqrsize))
         #     image = croptrans(image)
-        nimage = image.resize((320,200), Image.NEAREST)
+        nimage = image.resize((256, 128), Image.NEAREST)
         nimage = nimage.convert('RGB')
         label = self.labels[index]
         return self.transform(nimage), label
@@ -240,7 +258,6 @@ class KD_DL_Raw(D.Dataset):
 ####################################################################
 
 def get_loaders(path,split_perc=0.7,batch_size=32,mode=0):
-
     # Simple dataset. Only save path to image and load it and transform to tensor when call getitem.
     if mode==0:
         dataset = KD_DL(path)           # Numpy File
@@ -253,47 +270,50 @@ def get_loaders(path,split_perc=0.7,batch_size=32,mode=0):
 
     # total images in set
     print(dataset.len,'images from the dataset')
-    
+
     # divide dataset into training and validation subsets
     train_len = int(split_perc*dataset.len)
     valid_len = dataset.len - train_len
     train, valid = D.random_split(dataset, lengths=[train_len, valid_len])
     print(len(train), len(valid))
-    
+
     # Use the torch dataloader to iterate through the dataset
     trainloader = D.DataLoader(train, batch_size=batch_size, shuffle=False, num_workers=0)
     validloader = D.DataLoader(valid, batch_size=batch_size, shuffle=False, num_workers=0)
     return trainloader, validloader
 
 def main_func():
-    path = 'images/'
+    path = 'data/spectographs/'
     # Simple dataset. Only save path to image and load it and transform to tensor when call __getitem__.
-    dataset = KD_DL(path)
+    dlt, dlv = get_loaders(path, mode=2)
     # total images in set
-    print(dataset.len,'images from the dataset')
+    # print(dataset.len,'images from the dataset')
     # divide dataset into training and validation subsets
-    train_len = int(0.7*dataset.len)
-    valid_len = dataset.len - train_len
-    train, valid = D.random_split(dataset, lengths=[train_len, valid_len])
-    len(train), len(valid)
-    # Use the torch dataloader to iterate through the dataset
-    trainloader = D.DataLoader(train, batch_size=32, shuffle=False, num_workers=0)
-    validloader = D.DataLoader(valid, batch_size=32, shuffle=False, num_workers=0)
+    # train_len = int(0.7*dataset.len)
+    # valid_len = dataset.len - train_len
+    # train, valid = D.random_split(dataset, lengths=[train_len, valid_len])
+    # # len(train), len(valid)
+    # # Use the torch dataloader to iterate through the dataset
+    # trainloader = D.DataLoader(train, batch_size=32, shuffle=False, num_workers=0)
+    # validloader = D.DataLoader(valid, batch_size=32, shuffle=False, num_workers=0)
 
     # get some images
-    dataiter_tr = iter(trainloader)
-    dataiter_vl = iter(validloader)
+    dataiter_tr = iter(dlt)
+    dataiter_vl = iter(dlv)
     images_t, labels_t = dataiter_tr.next()
     images_v, labels_v = dataiter_vl.next()
 
     # show images and match labels 4 fun
     plt.figure(figsize=(16,8))
     torchimshow(torchvision.utils.make_grid(images_t))
-    print('Train:',labels_t)
+    # print('Train:',labels_t)
     plt.figure(figsize=(16,8))
     torchimshow(torchvision.utils.make_grid(images_v))
-    print('Valid:',labels_v)
+    # print('Valid:',labels_v)
+    print(images_v[0].shape)
 
 # tl, vl = get_loaders('Pixel_750', mode=1);    #mode 0/1 numpy+tensor
 # tl, vl = get_loaders('images/', mode=3);      #mode 2/3 raw+rawtensor
 # print(tl)
+# main_func()
+# print(os.getcwd())
