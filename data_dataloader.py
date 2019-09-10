@@ -7,6 +7,7 @@ import torch
 import torchvision
 from torchvision import transforms
 from torch.utils import data as D
+import csv
 
 import os
 import glob
@@ -39,25 +40,12 @@ def torchdatagrid(images):
 
 # ------------------------------------------------------------------
 
-def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.csv'):
-    filearray = []
+def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.csv', name='2k2sec'):
+    # filearray = []
+    # filenames = glob.glob(osp.join(dir, '*.jpg'))
     labels = []
-    filenames = glob.glob(osp.join(dir, '*.jpg'))
-
-    for fn in filenames:
-        filearray.append(fn)
-        labels.append(1)
-    length = len(filearray)
-    imgarr = []
-    for index in range(0,length):
-        image = Image.open(filearray[index])
-        nimage = image.resize((256, 128), Image.NEAREST)
-        nimage = nimage.convert('RGB')
-        img = np.array(nimage)
-        imgarr.append(img)
-    imgarr = np.array(imgarr)
-
-    labels = []
+    fnames = []
+    lens = []
     with open(csvf, 'r') as csvFile:
         reader = csv.reader(csvFile)
         for row in reader:
@@ -65,16 +53,48 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
             text = row[4]
             text = text.strip("'-!$[]")
             text = text.split(',')
-            for t in text:
+            i=0
+            for t in range(0,44):
                 if t=='Tokens':
                     pass
                 else:
-                    ctext.append(int(t))
+                    try:
+                        ctext.append(int(text[t]))
+                        i+=1
+                    except:
+                        ctext.append(0)
             labels.append(ctext)
-    csvFile.close()
+            lens.append(i-1)
+            fnames.append(row[0])
 
-    np.save('kothaddekha_ImageArray_'+len(imgarr),imgarr)
-    np.save('kothaddekha_LabelArray_'+len(imgarr),labels)
+    labels.pop(0)
+    lens.pop(0)
+    fnames.pop(0)
+    print('lfn:',len(fnames))
+    print('lbl:',len(labels))
+    print('lln:',len(lens))
+    # for fn in filenames:
+    #     filearray.append(fn)
+
+    length = len(fnames)
+    imgarr = []
+    for index in range(0,length):
+        image = Image.open(dir+fnames[index]+'.wav.jpg')
+        nimage = image.resize((256, 128), Image.NEAREST)
+        nimage = nimage.convert('RGB')
+        img = np.array(nimage)
+        imgarr.append(img)
+        if index%100==0:
+            print(index,'imgs added to array')
+    imgarr = np.array(imgarr)
+
+    csvFile.close()
+    print(fnames[0],lens[0],labels[0])
+    print(fnames[1],lens[1],labels[1])
+    print(fnames[55],lens[55],labels[55])
+    np.save('kothaddekha_ImageArray_'+name+'.npy',imgarr)
+    np.save('kothaddekha_LabelArray_'+name+'.npy',labels)
+    np.save('kothaddekha_LenthArray_'+name+'.npy',lens)
 
 
 def saveimagesasnpy_modular(path='data/spectographs/', name='MOD', length=200, shuffle=False):
@@ -104,8 +124,9 @@ def saveimagesasnpy_modular(path='data/spectographs/', name='MOD', length=200, s
 
 def loadnpyfiles(npyname):
     npzimg = np.load('kothaddekha_ImageArray_'+npyname+'.npy')
-    npzlbl = np.load('kothaddekha_LabelArray_'+npyname+'.npy')
-    return npzimg, npzlbl
+    npzlbl = np.load('kothaddekha_LabelArray_'+npyname+'.npy',allow_pickle=True)
+    npzlen = np.load('kothaddekha_LenthArray_'+npyname+'.npy')
+    return npzimg, npzlbl, npzlen
 
 
 def convertimagestotensor(dirname='data/spectographs/'):
@@ -134,8 +155,7 @@ class KD_DL(D.Dataset):
     def __init__(self, root):
         """ Intialize the dataset """
         self.root = root
-        self.imgarray = np.load('kothaddekha_ImageArray_'+root+'.npy')
-        self.labels = np.load('kothaddekha_LabelArray_'+root+'.npy')
+        self.imgarray, self.labels, self.lens = loadnpyfiles(root)
         self.len = len(self.labels)
 
     def __getitem__(self, index):
@@ -283,9 +303,9 @@ def get_loaders(path,split_perc=0.7,batch_size=32,mode=0):
     return trainloader, validloader
 
 def main_func():
-    path = 'data/spectographs/'
+    path = '2k2sec'
     # Simple dataset. Only save path to image and load it and transform to tensor when call __getitem__.
-    dlt, dlv = get_loaders(path, mode=2)
+    dlt, dlv = get_loaders(path, mode=0)
     # total images in set
     # print(dataset.len,'images from the dataset')
     # divide dataset into training and validation subsets
@@ -306,14 +326,18 @@ def main_func():
     # show images and match labels 4 fun
     plt.figure(figsize=(16,8))
     torchimshow(torchvision.utils.make_grid(images_t))
-    # print('Train:',labels_t)
-    plt.figure(figsize=(16,8))
-    torchimshow(torchvision.utils.make_grid(images_v))
-    # print('Valid:',labels_v)
+    print('Train:',labels_t)
     print(images_v[0].shape)
+    # plt.figure(figsize=(16,8))
+    # torchimshow(torchvision.utils.make_grid(images_v))
+    # print('Valid:',labels_v)
 
 # tl, vl = get_loaders('Pixel_750', mode=1);    #mode 0/1 numpy+tensor
 # tl, vl = get_loaders('images/', mode=3);      #mode 2/3 raw+rawtensor
 # print(tl)
-# main_func()
 # print(os.getcwd())
+
+# saveimagesasnpy()
+# npim, nplb, npln = loadnpyfiles('2k2sec')
+# print(npim.shape, nplb.shape, npln.shape)
+# main_func()

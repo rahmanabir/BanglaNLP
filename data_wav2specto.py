@@ -10,7 +10,6 @@ import numpy as np
 
 savePath = 'data/spectographs'
 
-
 # creating spectrograms from audio info
 def graph_spectrogram(wav_file):
     wav_file = 'data/crblp/wav/'+wav_file

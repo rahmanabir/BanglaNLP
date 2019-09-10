@@ -4,6 +4,7 @@ wav/
 @Literature/
 @Models/
 *.jpg
+*.npy
 
 # Compiled source #
 ###################
