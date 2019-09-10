@@ -3,8 +3,11 @@ wav/
 @Datasets/
 @Literature/
 @Models/
+data/
+
 *.jpg
 *.npy
+
 
 # Compiled source #
 ###################
