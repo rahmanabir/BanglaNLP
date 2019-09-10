@@ -55,15 +55,16 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
             text = text.split(',')
             i=0
             for t in range(0,43):
-                try:
-                    num = int(text[t])
-                    if num!=0:
+                if t=='Tokens':
+                    pass
+                else:
+                    try:
+                        ctext.append(int(text[t]))
                         i+=1
-                        ctext.append(num)
-                except:
-                    ctext.append(0)
+                    except:
+                        ctext.append(0)
             labels.append(ctext)
-            lens.append(i)
+            lens.append(i-1)
             fnames.append(row[0])
 
     labels.pop(0)
@@ -96,7 +97,6 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
     np.save('kothaddekha_LenthArray_'+name+'.npy',lens)
 
 
-
 def saveimagesasnpy_modular(path='data/spectographs/', name='MOD', length=200, shuffle=False):
     filearray = []
     filenames = glob.glob(osp.join(path, '*.jpg'))
@@ -122,10 +122,10 @@ def saveimagesasnpy_modular(path='data/spectographs/', name='MOD', length=200, s
     np.save('kothaddekha_ImageArray_'+name+'_'+str(length)+'.npy',imgarr)
 
 
-def loadnpyfiles(npyname):
-    npzimg = np.load('kothaddekha_ImageArray_'+npyname+'.npy')
-    npzlbl = np.load('kothaddekha_LabelArray_'+npyname+'.npy',allow_pickle=True)
-    npzlen = np.load('kothaddekha_LenthArray_'+npyname+'.npy')
+def loadnpyfiles(npyname,rootpath=''):
+    npzimg = np.load(rootpath+'kothaddekha_ImageArray_'+npyname+'.npy')
+    npzlbl = np.load(rootpath+'kothaddekha_LabelArray_'+npyname+'.npy',allow_pickle=True)
+    npzlen = np.load(rootpath+'kothaddekha_LenthArray_'+npyname+'.npy')
     return npzimg, npzlbl, npzlen
 
 
@@ -152,10 +152,10 @@ def convertimagestotensor(dirname='data/spectographs/'):
 """ Swap commmented with active code in case of issues """
 class KD_DL(D.Dataset):
 
-    def __init__(self, root):
+    def __init__(self, root, rpath=''):
         """ Intialize the dataset """
         self.root = root
-        self.imgarray, self.labels, self.lens = loadnpyfiles(root)
+        self.imgarray, self.labels, self.lens = loadnpyfiles(root,rootpath=rpath)
         self.len = len(self.labels)
 
     def __getitem__(self, index):
@@ -231,14 +231,64 @@ class KD_DL_Raw(D.Dataset):
         """ Total number of samples in the dataset """
         return self.len
 
-####################################################################
+
+# class KD_DL_RawTensor(D.Dataset):
+
+#     def __init__(self, root):
+#         """ Intialize the dataset """
+#         self.filearray = []
+#         self.imgarray = []
+#         self.labels = []
+#         self.root = root
+#         self.tens = transforms.ToTensor()
+#         filenames = glob.glob(osp.join(self.root+'Pixelart/', '*.jpg'))
+#         for fn in filenames:
+#             self.filearray.append(fn)
+#             self.labels.append(1)
+#         filenames = glob.glob(osp.join(self.root+'Realpix/', '*.jpg'))
+#         for fn in filenames:
+#             self.filearray.append(fn)
+#             self.labels.append(0)
+#         self.len = len(self.filearray)
+
+#         for index in range(0,self.len):
+#             image = Image.open(self.filearray[index])
+#             if image.size[0] != image.size[1]:
+#                 sqrsize = min(image.size)
+#                 croptrans = transforms.CenterCrop((sqrsize,sqrsize))
+#                 image = croptrans(image)
+#             nimage = image.resize((128, 128), Image.NEAREST)
+#             nimage = nimage.convert('RGB')
+#             self.imgarray.append(self.tens(nimage))
+
+#     def __getitem__(self, index):
+#         """ Get a sample from the dataset """
+#         image = Image.open(self.filearray[index])
+#         if image.size[0] != image.size[1]:
+#             sqrsize = min(image.size)
+#             croptrans = transforms.CenterCrop((sqrsize,sqrsize))
+#             image = croptrans(image)
+#         nimage = image.resize((128, 128), Image.NEAREST)
+#         nimage = nimage.convert('RGB')
+#         label = self.labels[index]
+#         return self.tens(nimage), label
 
 ####################################################################
 
-def get_loaders(path,split_perc=0.7,batch_size=32,mode=0):
+
+####################################################################
+
+
+def create_sepeate_static_numpy_valid(name,rp):
+    npim, nplb, npln = loadnpyfiles(name,rp)
+    print(npim.shape, nplb.shape, npln.shape)
+
+
+
+def get_loaders(path,split_perc=0.7,batch_size=32,mode=0, rootpath=''):
     # Simple dataset. Only save path to image and load it and transform to tensor when call getitem.
     if mode==0:
-        dataset = KD_DL(path)           # Numpy File
+        dataset = KD_DL(path,rootpath)           # Numpy File
     elif mode==1:
         dataset = KD_DL_Tensor(path)    # Numpy to Tensor
     elif mode==2:
@@ -261,31 +311,24 @@ def get_loaders(path,split_perc=0.7,batch_size=32,mode=0):
     return trainloader, validloader
 
 def main_func():
-    path = '2k2sec'
+    path = '2k2sec_22class'
+    rpath = 'data/numpy_arrays/22_class/'
     # Simple dataset. Only save path to image and load it and transform to tensor when call __getitem__.
-    dlt, dlv = get_loaders(path, mode=0)
-    # total images in set
-    # print(dataset.len,'images from the dataset')
-    # divide dataset into training and validation subsets
-    # train_len = int(0.7*dataset.len)
-    # valid_len = dataset.len - train_len
-    # train, valid = D.random_split(dataset, lengths=[train_len, valid_len])
-    # # len(train), len(valid)
-    # # Use the torch dataloader to iterate through the dataset
-    # trainloader = D.DataLoader(train, batch_size=32, shuffle=False, num_workers=0)
-    # validloader = D.DataLoader(valid, batch_size=32, shuffle=False, num_workers=0)
+    dlt, dlv = get_loaders(path, mode=0, rootpath=rpath)
+
 
     # get some images
     dataiter_tr = iter(dlt)
     dataiter_vl = iter(dlv)
-    images_t, labels_t, lens = dataiter_tr.next()
-    images_v, labels_v, lens = dataiter_vl.next()
+    images_t, labels_t, lens_t = dataiter_tr.next()
+    images_v, labels_v, lens_v = dataiter_vl.next()
 
     # show images and match labels 4 fun
-    plt.figure(figsize=(16,8))
-    torchimshow(torchvision.utils.make_grid(images_t))
-    print('Train:',labels_t)
-    print(images_v[0].shape)
+    # plt.figure(figsize=(16,8))
+    # torchimshow(torchvision.utils.make_grid(images_t))
+    # print('Train:',labels_t)
+    print(lens_t[0])
+    print(labels_t[0])
     # plt.figure(figsize=(16,8))
     # torchimshow(torchvision.utils.make_grid(images_v))
     # print('Valid:',labels_v)
@@ -296,6 +339,5 @@ def main_func():
 # print(os.getcwd())
 
 # saveimagesasnpy()
-# npim, nplb, npln = loadnpyfiles('2k2sec')
-# print(npim.shape, nplb.shape, npln.shape)
+
 # main_func()
