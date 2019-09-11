@@ -39,10 +39,7 @@ def torchdatagrid(images):
     torchimshow(torchvision.utils.make_grid(images))
 
 # ------------------------------------------------------------------
-
 def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.csv', name='2k2sec'):
-    # filearray = []
-    # filenames = glob.glob(osp.join(dir, '*.jpg'))
     labels = []
     fnames = []
     lens = []
@@ -54,28 +51,26 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
             text = text.strip("'-!$[]")
             text = text.split(',')
             i=0
-            for t in range(0,43):
-                if t=='Tokens':
+            for t in range(0,44):
+                if 'Token' in row[4]:
                     pass
                 else:
                     try:
-                        ctext.append(int(text[t]))
+                        ctext.append(int(text[t])+1)
                         i+=1
-                    except:
+                        # print(text[t])
+                    except IndexError:
                         ctext.append(0)
+                        print('zero')
             labels.append(ctext)
-            lens.append(i-1)
+            lens.append(i)
             fnames.append(row[0])
-
     labels.pop(0)
     lens.pop(0)
     fnames.pop(0)
     print('lfn:',len(fnames))
     print('lbl:',len(labels))
     print('lln:',len(lens))
-    # for fn in filenames:
-    #     filearray.append(fn)
-
     length = len(fnames)
     imgarr = []
     for index in range(0,length):
@@ -87,7 +82,6 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
         if index%100==0:
             print(index,'imgs added to array')
     imgarr = np.array(imgarr)
-
     csvFile.close()
     print(fnames[0],lens[0],labels[0])
     print(fnames[1],lens[1],labels[1])
@@ -95,6 +89,62 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
     np.save('kothaddekha_ImageArray_'+name+'.npy',imgarr)
     np.save('kothaddekha_LabelArray_'+name+'.npy',labels)
     np.save('kothaddekha_LenthArray_'+name+'.npy',lens)
+
+# def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.csv', name='2k2sec'):
+#     # filearray = []
+#     # filenames = glob.glob(osp.join(dir, '*.jpg'))
+#     labels = []
+#     fnames = []
+#     lens = []
+#     with open(csvf, 'r') as csvFile:
+#         reader = csv.reader(csvFile)
+#         for row in reader:
+#             ctext = []
+#             text = row[4]
+#             text = text.strip("'-!$[]")
+#             text = text.split(',')
+#             i=0
+#             print(text)
+#             for t in range(0,43):
+#                 if text[t]=='Tokens':
+#                     pass
+#                 else:
+#                     try:
+#                         if:
+#                             ctext.append(int(text[t]))
+#                             i+=1
+#                     except:
+#                         ctext.append(0)
+#             labels.append(ctext)
+#             lens.append(i-1)
+#             fnames.append(row[0])
+#
+#     labels.pop(0)
+#     lens.pop(0)
+#     fnames.pop(0)
+#     print('lfn:',len(fnames))
+#     print('lbl:',len(labels))
+#     print('lln:',len(lens))
+#
+#     length = len(fnames)
+#     imgarr = []
+#     for index in range(0,length):
+#         image = Image.open(dir+fnames[index]+'.wav.jpg')
+#         nimage = image.resize((256, 128), Image.NEAREST)
+#         nimage = nimage.convert('RGB')
+#         img = np.array(nimage)
+#         imgarr.append(img)
+#         if index%100==0:
+#             print(index,'imgs added to array')
+#     imgarr = np.array(imgarr)
+#
+#     csvFile.close()
+#     print(fnames[0],lens[0],labels[0])
+#     print(fnames[1],lens[1],labels[1])
+#     print(fnames[55],lens[55],labels[55])
+#     np.save('kothaddekha_ImageArray_'+name+'.npy',imgarr)
+#     np.save('kothaddekha_LabelArray_'+name+'.npy',labels)
+#     np.save('kothaddekha_LenthArray_'+name+'.npy',lens)
 
 
 def saveimagesasnpy_modular(path='data/spectographs/', name='MOD', length=200, shuffle=False):
@@ -149,14 +199,14 @@ def convertimagestotensor(dirname='data/spectographs/'):
 
 
 ########################################### DATASET ################
-""" Swap commmented with active code in case of issues """
+ # Swap commmented with active code in case of issues
 class KD_DL(D.Dataset):
 
     def __init__(self, root, rpath=''):
         """ Intialize the dataset """
         self.root = root
         self.imgarray, self.labels, self.lens = loadnpyfiles(root,rootpath=rpath)
-        self.len = len(self.labels)
+        self.len = len(self.imgarray)
 
     def __getitem__(self, index):
         """ Get a sample from the dataset """
@@ -275,13 +325,9 @@ class KD_DL_Raw(D.Dataset):
 
 ####################################################################
 
-
-####################################################################
-
-
 def create_sepeate_static_numpy_valid(name,rp):
     npim, nplb, npln = loadnpyfiles(name,rp)
-    
+
 
     npim_val, nplb_val, npln_val = npim[:50], nplb[:50], npln[:50]
     npim_trtst, nplb_trtst, npln_trtst = npim[50:], nplb[50:], npln[50:]
@@ -352,7 +398,7 @@ def main_func():
 # print(tl)
 # print(os.getcwd())
 
-# saveimagesasnpy()
+saveimagesasnpy()
 
 # main_func()
 
@@ -360,4 +406,3 @@ def main_func():
 # path = '2k2sec_22class'
 # rpath = 'data/numpy_arrays/22_class/'
 # create_sepeate_static_numpy_valid(path,rpath)
-
