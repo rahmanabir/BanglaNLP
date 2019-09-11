@@ -281,7 +281,21 @@ class KD_DL_Raw(D.Dataset):
 
 def create_sepeate_static_numpy_valid(name,rp):
     npim, nplb, npln = loadnpyfiles(name,rp)
-    print(npim.shape, nplb.shape, npln.shape)
+    
+
+    npim_val, nplb_val, npln_val = npim[:50], nplb[:50], npln[:50]
+    npim_trtst, nplb_trtst, npln_trtst = npim[50:], nplb[50:], npln[50:]
+
+    np.save('kothaddekha_ImageArray_'+name+'val.npy',npim_val)
+    np.save('kothaddekha_LabelArray_'+name+'val.npy',nplb_val)
+    np.save('kothaddekha_LenthArray_'+name+'val.npy',npln_val)
+
+    np.save('kothaddekha_ImageArray_'+name+'trtst.npy',npim_trtst)
+    np.save('kothaddekha_LabelArray_'+name+'trtst.npy',nplb_trtst)
+    np.save('kothaddekha_LenthArray_'+name+'trtst.npy',npln_trtst)
+
+
+
 
 
 
@@ -341,3 +355,9 @@ def main_func():
 # saveimagesasnpy()
 
 # main_func()
+
+
+# path = '2k2sec_22class'
+# rpath = 'data/numpy_arrays/22_class/'
+# create_sepeate_static_numpy_valid(path,rpath)
+

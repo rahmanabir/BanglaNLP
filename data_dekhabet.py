@@ -207,10 +207,10 @@ def splitcsv(csvf='dekhabet_dataLabelsRanged.csv'):
     print(labels[0])
     print(labels[1])
 
-def convertTokens2Dekhabet(input):
+def convertTokens2Dekhabet(input,adjust=0):
     out = ''
     for i in input:
-        out += tokenlookup[i]
+        out += tokenlookup[i-adjust]
     return out
 
 # ConvertIPA2Dekhabet()
@@ -219,8 +219,3 @@ def convertTokens2Dekhabet(input):
 # splitcsv()
 
 
-def convertTokens2Dekhabet(input):
-    out = ''
-    for i in input:
-        out += tokenlookup[int(i)]
-    return out
