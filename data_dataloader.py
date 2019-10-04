@@ -56,7 +56,7 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
             text = text.strip("'-!$[]")
             text = text.split(',')
             i = 0
-            for t in range(0, 43):
+            for t in range(43):
                 if 'Token' in row[4]:
                     pass
                 else:
@@ -66,7 +66,7 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
                         # print(text[t])
                     except IndexError:
                         ctext.append(0)
-                        print('zero')
+                        # print('zero')
             labels.append(ctext)
             lens.append(i)
             fnames.append(row[0])
@@ -76,6 +76,7 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
     print('lfn:', len(fnames))
     print('lbl:', len(labels))
     print('lln:', len(lens))
+    print('lll:', len(labels[55]))
     length = len(fnames)
     imgarr = []
     for index in range(0, length):
