@@ -37,17 +37,48 @@ dekhabet = [
 
 tokenlookup = [' ', 'a', 'e', 'i', 'o', 'u', 'g', 'p', 'b', 'h', 's', 't', 'j', 'l', 'm', 'n', 'r', 'd', 'k', 'ng', 'ch', 'sh']
 
-# Open XML document using minidom parser
-DOMTree = xml.dom.minidom.parse('speech_corpus.xml')
-root = DOMTree.documentElement
-sentences = root.getElementsByTagName("sentences")
-dk = []
-ipa = []
-for tup in dekhabet:
-    dk.append(tup[0])
-    ipa.append(tup[1])
-# tokenlookup = list(set(dk))
-# print(tokenlookup)
+
+banglaletters = [
+'অ', 'আ', 'ই', 'ঈ', 'উ', 'ঊ', 'ঋ', 'এ', 'ঐ', 'ও', 'ঔ', 
+'ক', 'খ', 'গ', 'ঘ', 'ঙ', 
+'চ', 'ছ', 'জ', 'ঝ', 'ঞ', 
+'ট', 'ঠ', 'ড', 'ঢ', 'ণ', 
+'ত', 'থ', 'দ', 'ধ', 'ন', 
+'প', 'ফ', 'ব', 'ভ', 'ম', 
+'য', 'র', 'ল', 'শ', 'ষ', 
+'স', 'হ', 'ড়', 'ঢ়', 'য়', 'ং', 
+'়', 'া', 'ি', 'ী', 'ু', 'ূ', 'ৃ', 'ে', 'ৈ', 'ো', 'ৌ', '্', 'ৎ', 'ৗ',
+'০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯', ' '
+]
+banglakaars = ['়', 'া', 'ি', 'ী', 'ু', 'ূ', 'ৃ', 'ে', 'ৈ', 'ো', 'ৌ', '্', 'ৎ', 'ৗ']
+banglanokaars = ['অ', 'আ', 'ই', 'ঈ', 'উ', 'ঊ', 'ঋ', 'এ', 'ঐ', 'ও', 'ঔ', 'ং', 'ৎ']
+
+kaarlookup = ['', 'a', 'i', 'i', 'u', 'u', 'r', 'e', 'oi', 'o', 'ou', '', 't', 'ou']
+banglalookup = [
+'o', 'a', 'i', 'i', 'u', 'ou', 'ri', 'e', 'oi', 'o', 'ou', 
+'k', 'kh', 'g', 'gh', 'ng', 
+'ch', 'chh', 'j', 'jh', 'n', 
+'t', 'th', 'd', 'dh', 'n', 
+'t', 'th', 'd', 'dh', 'n', 
+'p', 'f', 'b', 'bh', 'm', 
+'j', 'r', 'l', 'sh', 'sh', 
+'s', 'h', 'rr', 'r', 'y', 'ng', 
+'', 'a', 'i', 'i', 'u', 'u', 'r', 'e', 'oi', 'o', 'ou', '', 't', 'ou',
+'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',' '
+]
+
+def parseXMLcorpus():
+    # Open XML document using minidom parser
+    DOMTree = xml.dom.minidom.parse('speech_corpus.xml')
+    root = DOMTree.documentElement
+    sentences = root.getElementsByTagName("sentences")
+    dk = []
+    ipa = []
+    for tup in dekhabet:
+        dk.append(tup[0])
+        ipa.append(tup[1])
+    tokenlookup = list(set(dk))
+    print(tokenlookup)
 
 
 def ipa2dekhabet(text):
@@ -213,6 +244,11 @@ def convertTokens2Dekhabet(input,adjust=0):
         out += tokenlookup[i-adjust]
     return out
 
+def convertUniBangla2Dekhabet(input,adjust=0):
+    out = ''
+    for i in input:
+        out += tokenlookup[i-adjust]
+    return out
 # ConvertIPA2Dekhabet()
 # MakeMatchingCSV()
 # FindMaxMinCSVToken()

@@ -394,7 +394,7 @@ def main_func():
 # print(tl)
 # print(os.getcwd())
 
-saveimagesasnpy()
+# saveimagesasnpy()
 
 # main_func()
 
