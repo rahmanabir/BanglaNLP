@@ -332,6 +332,8 @@ def create_sepeate_static_numpy_valid(name,rp):
     npim_val, nplb_val, npln_val = npim[:50], nplb[:50], npln[:50]
     npim_trtst, nplb_trtst, npln_trtst = npim[50:], nplb[50:], npln[50:]
 
+    print('saving!')
+
     np.save('kothaddekha_ImageArray_'+name+'val.npy',npim_val)
     np.save('kothaddekha_LabelArray_'+name+'val.npy',nplb_val)
     np.save('kothaddekha_LenthArray_'+name+'val.npy',npln_val)
@@ -399,6 +401,6 @@ def main_func():
 # main_func()
 
 
-# path = '2k2sec_22class'
-# rpath = 'data/numpy_arrays/22_class/'
+# path = '2k2sec'
+# rpath = 'data/numpy_arrays/22_class_fixed/'
 # create_sepeate_static_numpy_valid(path,rpath)
