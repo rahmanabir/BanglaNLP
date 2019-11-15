@@ -412,6 +412,6 @@ def main_func():
 # main_func()
 
 
-# path = '2k2sec'
-# rpath = 'data/numpy_arrays/22_class_fixed/'
+# path = '2k2sec43'
+# rpath = 'data/numpy_arrays/22_class_43sec_fixed/'
 # create_sepeate_static_numpy_valid(path,rpath)
