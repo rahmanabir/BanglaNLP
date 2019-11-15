@@ -15,6 +15,7 @@ import os.path as osp
 import pandas as pd
 import gc
 import random
+import progressbar as prgs
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -56,20 +57,27 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
             text = text.strip("'-!$[]")
             text = text.split(',')
             i = 0
+            z = 0
             for t in range(43):
                 if 'Token' in row[4]:
                     pass
                 else:
                     try:
-                        ctext.append(int(text[t])+1)
-                        i += 1
-                        # print(text[t])
+                        if int(text[t]) != 0:
+                            ctext.append(int(text[t]))
+                            i += 1
+                        else:
+                            z += 1
+                            # print(text[t], type(text[t]))
                     except IndexError:
                         ctext.append(0)
                         # print('zero')
+            for t in range(z):
+                ctext.append(0)
             labels.append(ctext)
             lens.append(i)
             fnames.append(row[0])
+            print(len(ctext))
     labels.pop(0)
     lens.pop(0)
     fnames.pop(0)
@@ -89,12 +97,72 @@ def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.cs
             print(index, 'imgs added to array')
     imgarr = np.array(imgarr)
     csvFile.close()
-    print(fnames[0], lens[0], labels[0])
-    print(fnames[1], lens[1], labels[1])
-    print(fnames[55], lens[55], labels[55])
+    print(fnames[0], lens[0], labels[0], len(labels[0]))
+    print(fnames[1], lens[1], labels[1], len(labels[1]))
+    print(fnames[55], lens[55], labels[55], len(labels[55]))
+    l = np.array(labels)
+    print(type(l), type(l[0]), l[0])
     np.save('kothaddekha_ImageArray_'+name+'.npy', imgarr)
-    np.save('kothaddekha_LabelArray_'+name+'.npy', labels)
-    np.save('kothaddekha_LenthArray_'+name+'.npy', lens)
+    np.save('kothaddekha_LabelArray_'+name+'.npy', l)
+    np.save('kothaddekha_LenthArray_'+name+'.npy', np.array(lens))
+
+
+
+def saveimagesasnpy2(dir='data/openslr_bengali/spectrograms_mel/', csvf='data/openslr_bengali/transcript_openslr_ranged.csv', name='openslrbn6k3seco'):
+    import data_dekhabet as dkb
+    labels = []
+    fnames = []
+    lens = []
+
+    df = pd.read_csv(csvf)
+    l = len(df)
+    prgs.printProgressBar(0, l, 'Token Vectorization')
+    for index, row in df.iterrows():
+        ctext = []
+        text = row['Vector']
+        text = text.strip("'-!.?$[] ")
+        text = text.split(',')
+        i = 0
+        z = 0
+        for t in range(43):
+            try:
+                if int(text[t]) != 0:
+                    ctext.append(int(text[t]))
+                    i += 1
+                else:
+                    z += 1
+            except IndexError:
+                ctext.append(0)
+        for t in range(z):
+            ctext.append(0)
+        labels.append(ctext)
+        lens.append(i)
+        fnames.append(row['Filename'])
+        prgs.printProgressBar(index, l, 'Token Vectorization')
+    
+    print('lfn:', len(fnames))
+    print('lbl:', len(labels))
+    print('lln:', len(lens))
+
+    length = len(fnames)
+    imgarr = []
+    prgs.printProgressBar(0, l, 'Image to Numpy')
+    for index in range(0, length):
+        image = Image.open(dir+row['Filename']+'.flac.png')
+        nimage = image.resize((256, 128), Image.NEAREST)
+        nimage = nimage.convert('RGB')
+        img = np.array(nimage)
+        imgarr.append(img)
+        prgs.printProgressBar(index, l, 'Image to Numpy')
+    imgarr = np.array(imgarr)
+    print(fnames[0], lens[0], labels[0], len(labels[0]))
+    print(fnames[1], lens[1], labels[1], len(labels[1]))
+    print(fnames[55], lens[55], labels[55], len(labels[55]))
+    l = np.array(labels)
+    print(type(l), type(l[0]), l[0])
+    np.save('kothaddekha_ImageArray_'+name+'.npy', imgarr)
+    np.save('kothaddekha_LabelArray_'+name+'.npy', l)
+    np.save('kothaddekha_LenthArray_'+name+'.npy', np.array(lens))
 
 # def saveimagesasnpy(dir='data/spectographs/', csvf='dekhabet_dataLabelsRanged.csv', name='2k2sec'):
 #     # filearray = []
@@ -407,7 +475,13 @@ def main_func():
 # print(tl)
 # print(os.getcwd())
 
+
 # saveimagesasnpy()
+
+# i, l, n = loadnpyfiles('2k2sec', '')
+
+# print(l[1], type(l[1]), len(l[1]))
+# print(n[1], type(n[1]))
 
 # main_func()
 
@@ -415,3 +489,5 @@ def main_func():
 # path = '2k2sec43'
 # rpath = 'data/numpy_arrays/22_class_43sec_fixed/'
 # create_sepeate_static_numpy_valid(path,rpath)
+
+saveimagesasnpy2()
