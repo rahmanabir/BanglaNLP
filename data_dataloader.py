@@ -449,8 +449,8 @@ def get_loaders(path, split_perc=0.7, batch_size=32, mode=0, rootpath=''):
 
 
 def main_func():
-    path = '2k2sec_22class'
-    rpath = 'data/numpy_arrays/22_class/'
+    path = 'openslrbn6k3seco'
+    rpath = r'data/openSLR/'
     # Simple dataset. Only save path to image and load it and transform to tensor when call __getitem__.
     dlt, dlv = get_loaders(path, mode=0, rootpath=rpath)
 
@@ -490,4 +490,4 @@ def main_func():
 # rpath = 'data/numpy_arrays/22_class_43sec_fixed/'
 # create_sepeate_static_numpy_valid(path,rpath)
 
-saveimagesasnpy2()
+# saveimagesasnpy2()
