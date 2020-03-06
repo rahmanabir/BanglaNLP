@@ -16,7 +16,7 @@ class ModelMonitor:
 
     # @desc: 
     #       Class that reads a list of datasets, 
-    #       monitors loss of a model 
+    #       monitors loss of a model, 
     #       switches datasets when loss delta between epochs become stagnant    
     # @params:
     #       root_path <str>: path to where the datasets are kept
@@ -24,7 +24,7 @@ class ModelMonitor:
     #       max_stgnt <int>: the number of times loss delta can be low until dataset is changed 
     #       delta_val <float>: the delta value for which an epoch can be considered stagnant 
     #       logpath <str>: path+filename of where the log of the loss function will be stored
-    # @ example:
+    # @example:
     #       root_path = 'datasets/'
     #       dataset_names = ['a.npy','b.npy','c.npy','d.npy']
     #       max_stgnt = 5
