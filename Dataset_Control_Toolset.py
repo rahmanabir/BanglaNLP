@@ -83,7 +83,9 @@ class ModelMonitor:
                 self.current_dataset =  self.dataset_names[self.dataset_index]
 
 
-                        
+    def getCurrentDataset(self):
+        return self.current_dataset
+                   
 
 
     def update(self, loss):
@@ -96,4 +98,5 @@ class ModelMonitor:
         self.current_loss = loss
 
         self.__switch()
+
 
